@@ -1,0 +1,41 @@
+{
+    "name": "Writer",
+    "version": "0.0.1",
+    "description": "Clean, extremely simple writing tool for developers.",
+    "author": "Axel Niklasson <info@axelniklasson.se>",
+    "scripts": {
+        "dev": "NODE_ENV=development nodemon ./api/server.js",
+        "test": "NODE_ENV=test ./node_modules/mocha/bin/mocha test",
+        "prod": "NODE_ENV=production node ./api/server.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/axelniklasson/WriterCMS.git"
+    },
+    "license": "MIT",
+    "dependencies": {
+        "body-parser": "^1.15.1",
+        "chai": "^3.5.0",
+        "cors": "^2.7.1",
+        "express": "^4.13.4",
+        "gcloud": "^0.36.0",
+        "googleapis": "^9.0.0",
+        "gulp": "^3.9.1",
+        "gulp-clean-css": "^2.0.10",
+        "gulp-concat": "^2.6.0",
+        "gulp-inject": "^4.1.0",
+        "gulp-main-bower-files": "^1.5.1",
+        "gulp-sass": "^2.3.1",
+        "gulp-server-livereload": "^1.8.0",
+        "gulp-uglify": "^1.5.3",
+        "jsonwebtoken": "^7.0.0",
+        "marked": "^0.3.5",
+        "mocha": "^3.0.2",
+        "moment": "^2.13.0",
+        "mongoose": "^4.4.19",
+        "nodemon": "^1.9.2",
+        "password-hash": "^1.2.2",
+        "serve-favicon": "^2.3.0",
+        "supertest": "^2.0.0"
+    }
+}
