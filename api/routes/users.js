@@ -49,11 +49,14 @@ router.put('/:id', auth, function(req, res) {
     var firstName = req.body.firstName;
     var lastName = req.body.lastName;
     var username = req.body.username;
+    var profilePic = req.body.profilePic;
+    var updatedPic = req.body.updatedPic;
+    var bio = req.body.bio;
 
-    if (req.body.profilePic) {
+    if (updatedPic) {
         bucketService.addImageToBucket(req.body.profilePic).then(function(response) {
             User.findOne({_id: ID}, function(err, user) {
-                user.update({ firstName: firstName, lastName: lastName, username: username, profilePic: response.url }, function(err, user) {
+                user.update({ firstName: firstName, lastName: lastName, username: username, profilePic: response.url, bio: bio }, function(err, user) {
                     if (err) {
                         res.status(500).send('Could not update user. Error: ' + err);
                     } else {
@@ -66,7 +69,7 @@ router.put('/:id', auth, function(req, res) {
         });
     } else {
         User.findOne({_id: ID}, function(err, user) {
-            user.update({ firstName: firstName, lastName: lastName, username: username }, function(err, user) {
+            user.update({ firstName: firstName, lastName: lastName, username: username, bio: bio }, function(err, user) {
                 if (err) {
                     res.status(500).send('Could not update user. Error: ' + err);
                 } else {

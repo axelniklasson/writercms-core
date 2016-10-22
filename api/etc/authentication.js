@@ -6,12 +6,12 @@ module.exports = function auth(req, res, next) {
     if (token) {
         jwt.verify(token, app.get('tokenSecret'), function(err, decoded) {
             if (err) {
-                return res.status(401).send('Invalid token.');
+                return res.status(401).json({ status: 'NOT_AUTHORIZED', message: 'INVALID_TOKEN' });
             } else {
                 next();
             }
         });
     } else {
-        return res.status(401).send('No token provided.');
+        return res.status(401).json({ status: 'NOT_AUTHORIZED', message: 'NO_TOKEN' });
     }
 }
