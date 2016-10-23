@@ -4,7 +4,8 @@ var auth = require('../etc/authentication.js');
 
 router.get('/', function(req, res) {
     res.json({
-        name: 'WriterCMS API',
+        name: 'writercms-core',
+        status: 'running',
         version: 'v1',
         author: 'Axel Niklasson <hello@axelniklasson.se>'
     });

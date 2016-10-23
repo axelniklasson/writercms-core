@@ -37,7 +37,6 @@ mongoose.connect(URL, { server: { reconnectTries: Number.MAX_VALUE } });
 
 /* Express application setup */
 var app = express();
-app.use('/storage', express.static('public/storage'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json({ limit: '50mb' }));
 
@@ -62,7 +61,7 @@ app.use('/users', require('./routes/users'));
 
 /* 404 */
 app.use(function(req, res, next) {
-    res.status(404).send('Endpoint does not exist.');
+    res.status(404).json({ status: 'NOT_FOUND', message: 'ENDPOINT_DOES_NOT_EXIST' });
 });
 
 app.listen(3000);

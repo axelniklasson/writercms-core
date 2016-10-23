@@ -22,13 +22,11 @@ var PostSchema = new mongoose.Schema({
 });
 
 PostSchema.virtual('year').get(function() {
-    var date = moment(this.date), year = date.format('YYYY');
-    return year;
+    return moment(this.date).format('YYYY');
 });
 
 PostSchema.virtual('month').get(function() {
-    var date = moment(this.date), month = date.format('MM');
-    return month;
+    return moment(this.date).format('MM');
 });
 
 // Index posts in descending order

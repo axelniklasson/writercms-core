@@ -26,12 +26,23 @@ router.get('/', function(req, res) {
     });
 });
 
-/* Get all posts */
+/* Get all posts with skip/take functionality */
 router.get('/list', function(req, res) {
     var take = parseInt(req.query.take);
     var skip = parseInt(req.query.skip);
 
     Post.find({}, '_id title').skip(skip).limit(take).sort({ date: -1 }).exec(function(err, posts) {
+        if (err) {
+            res.status(500).send('Could not get posts. Error: ' + err);
+        } else {
+            res.json(posts);
+        }
+    });
+});
+
+/* Get all post locations */
+router.get('/locations', function(req, res) {
+    Post.find({ location: { $exists: true } }, 'title slug location date').sort({ date: -1 }).exec(function(err, posts) {
         if (err) {
             res.status(500).send('Could not get posts. Error: ' + err);
         } else {
