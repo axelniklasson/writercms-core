@@ -42,7 +42,7 @@ router.get('/list', function(req, res) {
 
 /* Get all post locations */
 router.get('/locations', function(req, res) {
-    Post.find({ location: { $exists: true } }, 'title slug location date').sort({ date: -1 }).exec(function(err, posts) {
+    Post.find({ location: { $exists: true } }, 'title slug author location date').populate('author').sort({ date: -1 }).exec(function(err, posts) {
         if (err) {
             res.status(500).send('Could not get posts. Error: ' + err);
         } else {
