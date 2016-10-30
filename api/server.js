@@ -56,6 +56,7 @@ app.use('/categories', require('./routes/categories'));
 app.use('/comments', require('./routes/comments'));
 app.use('/dashboard', require('./routes/dashboard'));
 app.use('/posts', require('./routes/posts'));
+app.use('/settings', require('./routes/settings'));
 app.use('/stats', require('./routes/stats'));
 app.use('/users', require('./routes/users'));
 
