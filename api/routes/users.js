@@ -5,7 +5,7 @@ var auth = require('../etc/authentication');
 var bucketService = require('../etc/bucketService');
 
 /* Get all users */
-router.get('/', auth, function(req, res) {
+router.get('/', function(req, res) {
     User.find({}, function(err, users) {
         if (err) {
             res.status(500).send('Could not get users. Error: ' + err);
