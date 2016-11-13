@@ -6,7 +6,7 @@ var bucketService = require('../etc/bucketService');
 
 /* Get all users */
 router.get('/', function(req, res) {
-    User.find({}, function(err, users) {
+    User.find({}).sort({ firstName: 1 }).exec(function(err, users) {
         if (err) {
             res.status(500).send('Could not get users. Error: ' + err);
         } else {
