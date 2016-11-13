@@ -54,14 +54,41 @@ router.get('/locations', function(req, res) {
 /* Filter posts */
 router.get('/filter', function(req, res) {
     var categories = req.query.category;
+    var authors = req.query.author;
 
-    Post.find({ categories: { $all: categories } }).populate('author').sort({ date: -1 }).exec(function(err, posts) {
-        if (err) {
-            res.status(500).send('Could not get posts. Error: ' + err);
-        } else {
-            res.json(posts);
-        }
-    });
+    if (authors && categories) {
+        Post.find({ categories: { $all: categories }, author: { $in: authors } }).populate('author').sort({ date: -1 }).exec(function(err, posts) {
+            if (err) {
+                res.status(500).send('Could not get posts. Error: ' + err);
+            } else {
+                res.json(posts);
+            }
+        });
+    } else if (categories) {
+        Post.find({ categories: { $all: categories } }).populate('author').sort({ date: -1 }).exec(function(err, posts) {
+            if (err) {
+                res.status(500).send('Could not get posts. Error: ' + err);
+            } else {
+                res.json(posts);
+            }
+        });
+    } else if (authors) {
+        Post.find({ author: { $in: authors } }).populate('author').sort({ date: -1 }).exec(function(err, posts) {
+            if (err) {
+                res.status(500).send('Could not get posts. Error: ' + err);
+            } else {
+                res.json(posts);
+            }
+        });
+    } else {
+        Post.find({}).populate('author').sort({ date: -1 }).exec(function(err, posts) {
+            if (err) {
+                res.status(500).send('Could not get posts. Error: ' + err);
+            } else {
+                res.json(posts);
+            }
+        });
+    }
 });
 
 /* Create a new post */
