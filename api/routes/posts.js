@@ -51,6 +51,19 @@ router.get('/locations', function(req, res) {
     });
 });
 
+/* Filter posts */
+router.get('/filter', function(req, res) {
+    var categories = req.query.category;
+
+    Post.find({ categories: { $all: categories } }).populate('author').sort({ date: -1 }).exec(function(err, posts) {
+        if (err) {
+            res.status(500).send('Could not get posts. Error: ' + err);
+        } else {
+            res.json(posts);
+        }
+    });
+});
+
 /* Create a new post */
 router.post('/', auth, function(req, res) {
     google.auth.getApplicationDefault(function (err, authClient) {
