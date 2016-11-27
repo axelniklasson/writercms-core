@@ -32,9 +32,10 @@ router.post('/', auth, function(req, res) {
     var firstName = req.body.firstName;
     var lastName = req.body.lastName;
     var username = req.body.username;
+    var email = req.body.email;
     var password = req.body.password;
 
-    User.create({ firstName: firstName, lastName: lastName, username: username, password: password }, function(err, user) {
+    User.create({ firstName: firstName, lastName: lastName, username: username, email: email, password: password }, function(err, user) {
         if (err) {
             res.status(500).send('Could not create user. Error: ' + err);
         } else {
@@ -49,6 +50,7 @@ router.put('/:id', auth, function(req, res) {
     var firstName = req.body.firstName;
     var lastName = req.body.lastName;
     var username = req.body.username;
+    var email = req.body.email;
     var profilePic = req.body.profilePic;
     var updatedPic = req.body.updatedPic;
     var bio = req.body.bio;
@@ -56,7 +58,7 @@ router.put('/:id', auth, function(req, res) {
     if (updatedPic) {
         bucketService.addImageToBucket(req.body.profilePic).then(function(response) {
             User.findOne({_id: ID}, function(err, user) {
-                user.update({ firstName: firstName, lastName: lastName, username: username, profilePic: response.url, bio: bio }, function(err, user) {
+                user.update({ firstName: firstName, lastName: lastName, username: username, email: email, profilePic: response.url, bio: bio }, function(err, user) {
                     if (err) {
                         res.status(500).send('Could not update user. Error: ' + err);
                     } else {
@@ -69,7 +71,7 @@ router.put('/:id', auth, function(req, res) {
         });
     } else {
         User.findOne({_id: ID}, function(err, user) {
-            user.update({ firstName: firstName, lastName: lastName, username: username, bio: bio }, function(err, user) {
+            user.update({ firstName: firstName, lastName: lastName, username: username, email: email, bio: bio }, function(err, user) {
                 if (err) {
                     res.status(500).send('Could not update user. Error: ' + err);
                 } else {
