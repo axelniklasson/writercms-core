@@ -5,9 +5,11 @@ var UserSchema = new mongoose.Schema({
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     username: { type: String, required: true, unique: true, dropDups: true },
+    email: { type: String, required: true },
     profilePic: { type: String },
     bio: { type: String },
-    password: { type: String, required: true }
+    password: { type: String, required: true },
+    receiveNotifications: { type: Boolean, required: true, default: true }
 }, {
     toObject: {
         virtuals: true

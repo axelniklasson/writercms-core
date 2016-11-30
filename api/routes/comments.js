@@ -3,6 +3,7 @@ var router = express.Router();
 var Comment = require('../models/comment');
 var Post = require('../models/post');
 var auth = require('../etc/authentication.js');
+var notifier = require('../etc/notifier.js');
 
 /* Get all comments */
 router.get('/', function(req, res) {
@@ -37,6 +38,8 @@ router.post('/', function(req, res) {
         if (err) {
             res.status(500).send('Could not create comment. Error: ' + err);
         } else {
+            notifier.notifyUsers('Ny kommentar', 'Det postades nyss en ny kommentar!\n\n' + userName + ' skrev: \"' + content + '\".');
+
             Post.update({_id: post}, { $push: { 'comments': comment } }, function(err, post) {
                 if (err) {
                     res.status(500).send('Could not update post related to comment. Error: ' + err);

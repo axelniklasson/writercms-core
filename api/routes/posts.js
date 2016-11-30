@@ -209,6 +209,7 @@ router.put('/:id', auth, function(req, res) {
     var content = req.body.content;
     var categories = req.body.categories;
     var images = req.body.images;
+    var location = req.body.location;
 
     Post.findOne({_id: ID}, function(err, post) {
         // Logic for when images are removed/attached to/from post
@@ -267,7 +268,7 @@ router.put('/:id', auth, function(req, res) {
                         }
 
                         post.update({ title: title, slug: slug, content: content, categories: categories,
-                            images: images }, function(err, post) {
+                            images: images, location: location }, function(err, post) {
                             if (err) {
                                 res.status(500).send('Could not update post. Error: ' + err);
                             } else {
@@ -290,7 +291,7 @@ router.put('/:id', auth, function(req, res) {
                         }
 
                         post.update({ title: title, slug: slug, content: content, categories: categories,
-                            images: images }, function(err, post) {
+                            images: images, location: location }, function(err, post) {
                             if (err) {
                                 res.status(500).send('Could not update post. Error: ' + err);
                             } else {
@@ -302,7 +303,7 @@ router.put('/:id', auth, function(req, res) {
             });
         } else {
             post.update({ title: title, slug: slug, content: content, categories: categories,
-                images: images }, function(err, post) {
+                images: images, location: location }, function(err, post) {
                 if (err) {
                     res.status(500).send('Could not update post. Error: ' + err);
                 } else {
