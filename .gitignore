@@ -6,5 +6,4 @@ data
 api/data
 api/dump
 *.sh
-api/etc/mailman.js
 *.swp

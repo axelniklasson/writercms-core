@@ -1,6 +1,5 @@
 var User = require('../models/user');
 var request = require('request');
-var mailmanToken = require('./mailman');
 
 var notifier = {};
 
@@ -30,7 +29,7 @@ notifier.sendMail = function(users, subject, text)  {
         url: 'https://mailman.axelniklasson.se',
         method: 'POST',
         headers: {
-            'Token': mailmanToken
+            'Token': process.env.MAILMAN_TOKEN
         },
         body: {
             from: 'WriterCMS notifier <noreply@resa.axelniklasson.se>',
@@ -40,7 +39,7 @@ notifier.sendMail = function(users, subject, text)  {
         },
         json: true
     };
-    
+
     request(opts, function(error, response, body) {
         if (!error) {
             // Mails sent
