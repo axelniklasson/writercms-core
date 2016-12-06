@@ -84,7 +84,7 @@ bucketService.addImagesToBucket = function(images, cb) {
         }
 
         // Assume images are uploaded correctly
-        cb(null, imageLinks);
+        cb(imageLinks, null);
     }
 }
 

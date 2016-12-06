@@ -2,13 +2,6 @@ var express = require('express');
 var router = express.Router();
 var Post = require('../models/post');
 var markdown = require('../etc/markdown');
-var fs = require('fs');
-var crypto = require('crypto');
-var gcloud = require('gcloud');
-var google = require('googleapis');
-var stream = require('stream');
-var url = require("url");
-var path = require("path");
 var auth = require('../etc/authentication');
 var moment = require('moment');
 var bucketService = require('../etc/bucketService');
@@ -102,7 +95,7 @@ router.post('/', auth, function(req, res) {
     var categories = req.body.categories;
     var location = req.body.location;
 
-    bucketService.addImagesToBucket(images, function(err, imageLinks) {
+    bucketService.addImagesToBucket(images, function(imageLinks, err) {
         if (!err) {
             Post.create({ title: title, slug: slug, content: content, images: imageLinks, author: authorID,
             categories: categories, location: location }, function(err, post) {
@@ -162,93 +155,40 @@ router.put('/:id', auth, function(req, res) {
     Post.findOne({_id: ID}, function(err, post) {
         // Logic for when images are removed/attached to/from post
         if (images.length != post.images.length) {
-            google.auth.getApplicationDefault(function (err, authClient) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    if (authClient.createScopedRequired &&
-                        authClient.createScopedRequired()) {
-                      authClient = authClient.createScoped(
-                          ['https://www.googleapis.com/auth/devstorage.read_write']);
-                    }
-
-                    var storage = gcloud.storage({
-                      projectId: 'writer',
-                      auth: authClient
-                    });
-                    var bucket = storage.bucket('writer-images');
-
-                    if (images.length > post.images.length) {
-                        // Add images to bucket
-                        var distincts = images.filter(function(obj) { return post.images.indexOf(obj) == -1; });
-                        for (var i = 0; i < distincts.length; i++) {
-                            var base64string = distincts[i];
-                            var imageBytes = distincts[i].split(',')[1];
-                            var imageType = distincts[i].split(';')[0];
-                            imageType = imageType.split(':')[1];
-                            var extension = imageType.split('/')[1];
-
-                            var imageString = new Buffer(imageBytes, 'base64').toString('binary');
-
-                            var timestamp = moment().format() + '_' + (i + 1);
-                            var fileName = timestamp + '.' + extension;
-
-                            var tempStorage = './';
-                            fs.writeFileSync(tempStorage + fileName, imageBytes, 'base64');
-                            images = post.images;
-                            images.push('https://storage.googleapis.com/writer-images/' + fileName);
-
-                            var file = bucket.file(fileName);
-                            var stream = file.createWriteStream({
-                                metadata: {
-                                    contentType: imageType,
-                                    predefinedAcl: 'publicRead',
-                                    metadata: {
-                                        custom: 'metadata'
-                                    }
-                                }
-                            });
-
-                            var path = tempStorage + fileName;
-                            var file = fs.readFileSync(path);
-
-                            handleCreatedImage(stream, file, path);
-                        }
+            // Images are attached to post
+            if (images.length > post.images.length) {
+                var attachedImages = images.filter(function(obj) { return post.images.indexOf(obj) == -1; });
+                bucketService.addImagesToBucket(attachedImages, function(imageLinks, err) {
+                    if (!err) {
+                        // Add new imagelinks to existing images
+                        var updatedImages = post.images.concat(imageLinks);
 
                         post.update({ title: title, slug: slug, content: content, categories: categories,
-                            images: images, location: location }, function(err, post) {
+                            images: updatedImages, location: location }, function(err, post) {
                             if (err) {
                                 res.status(500).send('Could not update post. Error: ' + err);
                             } else {
                                 res.json(post);
                             }
                         });
-
                     } else {
-                        // Remove from bucket
-                        var distincts = post.images.filter(function(obj) { return images.indexOf(obj) == -1; });
-                        for (var i = 0; i < distincts.length; i++) {
-                            var image = distincts[i];
-                            var parts = image.split('/');
-                            var fileName = parts[parts.length - 1];
-                            var file = bucket.file(fileName);
-                            file.delete(function(err, apiResponse) {
-                                if (err != null)
-                                    console.log('Deletion of bucket file ' + fileName + ' failed.');
-                            });
-                        }
-
-                        post.update({ title: title, slug: slug, content: content, categories: categories,
-                            images: images, location: location }, function(err, post) {
-                            if (err) {
-                                res.status(500).send('Could not update post. Error: ' + err);
-                            } else {
-                                res.json(post);
-                            }
-                        });
+                        res.status(500).send('Could not add images. Error: ' + err);
                     }
-                }
-            });
+                })
+            } else {
+                // Images are removed from post
+                var removedImages = post.images.filter(function(obj) { return images.indexOf(obj) == -1; });
+                bucketService.removeImagesFromBucket(removedImages);
+
+                post.update({ title: title, slug: slug, content: content, categories: categories,
+                    images: images, location: location }, function(err, post) {
+                    if (err) {
+                        res.status(500).send('Could not update post. Error: ' + err);
+                    } else {
+                        res.json(post);
+                    }
+                });
+            }
         } else {
             post.update({ title: title, slug: slug, content: content, categories: categories,
                 images: images, location: location }, function(err, post) {
@@ -262,24 +202,7 @@ router.put('/:id', auth, function(req, res) {
     });
 });
 
-function handleCreatedImage(stream, file, path) {
-    var self = {
-        stream: stream,
-        file: file,
-        path: path
-    };
-
-    self.stream.on('error', function(err) {
-        fs.unlink(self.path);
-    });
-
-    self.stream.on('finish', function() {
-        fs.unlink(self.path);
-    });
-
-    self.stream.end(file);
-}
-
+/* Register post like */
 router.post('/like/:id', function(req, res) {
     var ID = req.params.id;
     Post.findOne({_id: ID}, function(err, post) {
