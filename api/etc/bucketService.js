@@ -42,21 +42,33 @@ bucketService.init = function() {
     return promise;
 }
 
-bucketService.addImageToBucket = function(base64String) {
-    var returnPromise = this.init().then(function(response) {
-        var self = this;
+bucketService.addImagesToBucket = function(images, cb) {
+    var imageLinks = [];
+    if (!this.initialized) {
+        this.init().then(function(response) {
+            addImages(images);
+        });
+    } else {
+        addImages(images);
+    }
 
-        var promise = new Promise(function(resolve, reject) {
+    function addImages(images) {
+        for (var i = 0; i < images.length; i++) {
+            var base64String = images[i];
             var imageBytes = base64String.split(',')[1];
             var imageType = base64String.split(';')[0].split(':')[1];
             var extension = imageType.split('/')[1];
             var imageString = new Buffer(imageBytes, 'base64').toString('binary');
-            var timestamp = moment().format();
+            var timestamp = moment().format() + '_' + i;
             var fileName = timestamp + '.' + extension;
             var tempStorage = './';
             fs.writeFileSync(tempStorage + fileName, imageBytes, 'base64');
+            var file = this.bucket.file(fileName);
 
-            var file = self.bucket.file(fileName);
+            // Stash bucket and image links
+            var bucket = this.bucket;
+            imageLinks.push('https://storage.googleapis.com/' + bucket.name + '/' + fileName);
+
             var stream = file.createWriteStream({
                 metadata: {
                     contentType: imageType,
@@ -67,33 +79,62 @@ bucketService.addImageToBucket = function(base64String) {
                 }
             });
 
-            stream.on('error', function(err) {
-                reject(err);
-                deleteFile(tempStorage + fileName);
-            });
+            var filePath = tempStorage + fileName;
+            handleCreatedImage(stream, fs.readFileSync(filePath), filePath);
+        }
 
-            stream.on('finish', function() {
-                resolve({ url: 'https://storage.googleapis.com/' + self.bucket.name + '/' + fileName });
-                deleteFile(tempStorage + fileName);
-            });
-
-            stream.end(fs.readFileSync(tempStorage + fileName));
-        });
-
-        return promise;
-    }, function(err) {
-        console.log('bucketService.init(): ' + err);
-    });
-
-    return returnPromise;
+        // Assume images are uploaded correctly
+        cb(null, imageLinks);
+    }
 }
 
-function deleteFile(path) {
-    fs.stat(path, function(err, stat) {
-        if(err == null) {
-            fs.unlink(path);
+bucketService.removeImagesFromBucket = function(images) {
+    if (!this.initialized) {
+        this.init().then(function(response) {
+            removeImages(images);
+        });
+    } else {
+        removeImages(images);
+    }
+
+    function removeImages(images) {
+        for (var i = 0; i < images.length; i++) {
+            var parts = images[i].split('/');
+            var fileName = parts[parts.length - 1];
+            var file = this.bucket.file(fileName);
+            file.delete(function(err, response) {
+                if (err != null) {
+                    console.log('Deletion of bucket file ' + fileName + ' failed.'); // Handle this?
+                }
+            });
         }
+    }
+}
+
+function handleCreatedImage(stream, file, path) {
+    var self = {
+        stream: stream,
+        file: file,
+        path: path
+    };
+
+    self.stream.on('error', function(err) {
+        fs.stat(self.path, function(err, stat) {
+            if(err == null) {
+                fs.unlink(path);
+            }
+        });
     });
+
+    self.stream.on('finish', function() {
+        fs.stat(self.path, function(err, stat) {
+            if(err == null) {
+                fs.unlink(path);
+            }
+        });
+    });
+
+    self.stream.end(file);
 }
 
 module.exports = bucketService;

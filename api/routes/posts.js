@@ -11,6 +11,7 @@ var url = require("url");
 var path = require("path");
 var auth = require('../etc/authentication');
 var moment = require('moment');
+var bucketService = require('../etc/bucketService');
 
 /* Get all posts */
 router.get('/', function(req, res) {
@@ -93,70 +94,16 @@ router.get('/filter', function(req, res) {
 
 /* Create a new post */
 router.post('/', auth, function(req, res) {
-    google.auth.getApplicationDefault(function (err, authClient) {
-        if (err) {
-            console.log(err);
-        } else {
-            if (authClient.createScopedRequired &&
-                authClient.createScopedRequired()) {
-              authClient = authClient.createScoped(
-                  ['https://www.googleapis.com/auth/devstorage.read_write']);
-            }
+    var title = req.body.title;
+    var slug = slugify(title);
+    var content = req.body.content;
+    var images = req.body.images;
+    var authorID = req.body.author;
+    var categories = req.body.categories;
+    var location = req.body.location;
 
-            var storage = gcloud.storage({
-              projectId: 'writer',
-              auth: authClient
-            });
-            var bucket = storage.bucket('writer-images');
-
-            var title = req.body.title;
-            var slug = slugify(title);
-            var content = req.body.content;
-            var images = req.body.images;
-            var authorID = req.body.author;
-            var categories = req.body.categories;
-            var location = req.body.location;
-            var imageLinks = [];
-
-            for (var i = 0; i < images.length; i++) {
-                var base64string = images[i];
-                var imageBytes = base64string.split(',')[1];
-                var imageType = base64string.split(';')[0].split(':')[1];
-                var extension = imageType.split('/')[1];
-
-                var imageString = new Buffer(imageBytes, 'base64').toString('binary');
-
-                var timestamp = moment().format() + '_' + (i + 1);
-                var fileName = timestamp + '.' + extension;
-
-                var tempStorage = './';
-                fs.writeFileSync(tempStorage + fileName, imageBytes, 'base64');
-                imageLinks[i] = 'https://storage.googleapis.com/writer-images/' + fileName;
-
-                var file = bucket.file(fileName);
-                var stream = file.createWriteStream({
-                    metadata: {
-                        contentType: imageType,
-                        predefinedAcl: 'publicRead',
-                        metadata: {
-                            custom: 'metadata'
-                        }
-                    }
-                });
-
-                var file = fs.readFileSync(tempStorage + fileName);
-
-                stream.on('error', function(err) {
-                    fs.unlink(tempStorage + fileName);
-                });
-
-                stream.on('finish', function() {
-                    fs.unlink(tempStorage + fileName);
-                });
-
-                stream.end(file);
-            }
-
+    bucketService.addImagesToBucket(images, function(err, imageLinks) {
+        if (!err) {
             Post.create({ title: title, slug: slug, content: content, images: imageLinks, author: authorID,
             categories: categories, location: location }, function(err, post) {
                 if (err) {
@@ -165,9 +112,10 @@ router.post('/', auth, function(req, res) {
                     res.json(post);
                 }
             });
+        } else {
+            res.status(500).send('Could not add images to bucket. Error: ' + err);
         }
     });
-
 });
 
 /* Get post by ID */
@@ -286,7 +234,7 @@ router.put('/:id', auth, function(req, res) {
                             var file = bucket.file(fileName);
                             file.delete(function(err, apiResponse) {
                                 if (err != null)
-                                    console.log("Deletion of GCS file " + fileName + "failed.");
+                                    console.log('Deletion of bucket file ' + fileName + ' failed.');
                             });
                         }
 
@@ -322,7 +270,7 @@ function handleCreatedImage(stream, file, path) {
     };
 
     self.stream.on('error', function(err) {
-        fs.unlink(tempStorage + fileName);
+        fs.unlink(self.path);
     });
 
     self.stream.on('finish', function() {
@@ -347,37 +295,12 @@ router.delete('/:id', auth, function(req, res) {
     var ID = req.params.id;
 
     Post.findOne({_id: ID}, function(err, post) {
+        var images = post.images;
         post.remove(function(err) {
             if (err) {
                 res.status(500).send('Could not delete post. Error: ' + err);
             } else {
-                google.auth.getApplicationDefault(function (err, authClient) {
-                        if (err) {
-                        console.log(err);
-                    } else {
-                        if (authClient.createScopedRequired &&
-                            authClient.createScopedRequired()) {
-                        authClient = authClient.createScoped(
-                            ['https://www.googleapis.com/auth/devstorage.read_write']);
-                        }
-
-                        var storage = gcloud.storage({
-                            projectId: 'writer',
-                            auth: authClient
-                        });
-
-                        var bucket = storage.bucket('writer-images');
-
-                        post.images.forEach(function(link) {
-                            var parsedUrl = url.parse(link);
-                            var fileName = path.basename(parsedUrl.pathname);
-                            bucket.file(fileName).delete(function(err, apiResponse) {
-                                if (err != null)
-                                    console.log("Deletion of GCS file " + fileName + "failed.");
-                            });
-                        }, this);
-                    }
-                });
+                bucketService.removeImagesFromBucket(images);
                 res.status(200).send('Post deleted.');
             }
         });
