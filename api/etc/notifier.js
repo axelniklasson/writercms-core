@@ -32,7 +32,7 @@ notifier.sendMail = function(users, subject, text)  {
             'Token': process.env.MAILMAN_TOKEN
         },
         body: {
-            from: 'WriterCMS notifier <noreply@resa.axelniklasson.se>',
+            from: 'WriterCMS notifier <mailman@axelniklasson.se>',
             to: users,
             subject: subject,
             text: text
