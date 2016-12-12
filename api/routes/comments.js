@@ -38,7 +38,7 @@ router.post('/', function(req, res) {
         if (err) {
             res.status(500).send('Could not create comment. Error: ' + err);
         } else {
-            notifier.notifyUsers('Ny kommentar', 'Det postades nyss en ny kommentar!\n\n' + userName + ' skrev: \"' + content + '\".');
+            notifier.notifyAll('Ny kommentar', 'Det postades nyss en ny kommentar!\n\n' + userName + ' skrev: \"' + content + '\".');
 
             Post.update({_id: post}, { $push: { 'comments': comment } }, function(err, post) {
                 if (err) {

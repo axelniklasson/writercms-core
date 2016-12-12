@@ -4,20 +4,36 @@ var request = require('request');
 var notifier = {};
 
 /*
-* Notifies all users that want to receive email notificaitons.
+* Notifies all users.
 */
-notifier.notifyUsers = function(subject, text) {
+notifier.notifyAll = function(subject, text) {
     User.find({ receiveNotifications: true }, function(err, users) {
         if (err) {
-            // Handle error
+            // Handle error in some way?
         } else {
-            // Loop through users and collect their email
             var emails = [];
             for (var i = 0; i < users.length; i++) {
                 emails[i] = users[i].email;
             }
             notifier.sendMail(emails, subject, text);
         }
+    });
+};
+
+/*
+* Notifies all users found in the users array (of IDs) sent as an argument.
+*/
+notifier.notify = function(users, subject, text) {
+    User.find({ receiveNotifications: true , _id: { $in: users }}, function(err, users) {
+        if (err) {
+            // Handle error in some way?
+        }
+        var emails = [];
+        for (var i = 0; i < users.length; i++) {
+            emails[i] = users[i].email;
+        }
+
+        notifier.sendMail(emails, subject, text);
     });
 };
 
@@ -32,7 +48,7 @@ notifier.sendMail = function(users, subject, text)  {
             'Token': process.env.MAILMAN_TOKEN
         },
         body: {
-            from: 'WriterCMS notifier <noreply@resa.axelniklasson.se>',
+            from: 'WriterCMS notifier <mailman@axelniklasson.se>',
             to: users,
             subject: subject,
             text: text

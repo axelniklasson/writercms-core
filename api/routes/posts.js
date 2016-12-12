@@ -5,6 +5,7 @@ var markdown = require('../etc/markdown');
 var auth = require('../etc/authentication');
 var moment = require('moment');
 var bucketService = require('../etc/bucketService');
+var notifier = require('../etc/notifier.js');
 
 /* Get all posts */
 router.get('/', function(req, res) {
@@ -207,8 +208,15 @@ router.post('/like/:id', function(req, res) {
     var ID = req.params.id;
     Post.findOne({_id: ID}, function(err, post) {
         post.likes >= 1 ? likes = post.likes + 1 : likes = 1;
+        // Stash author and post title for notifying on success
+        var author = post.author, title = post.title;
         post.update({ likes: likes }, function(err, post) {
-            res.json(post);
+            if (err) {
+                res.status(500).send('Could not like post. Error: ' + err);
+            } else {
+                notifier.notify([author], 'Ny like', 'Någon likeade precis ditt inlägg \"' + title + '\".');
+                res.json(post);
+            }
         });
     });
 });
