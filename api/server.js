@@ -4,6 +4,7 @@ var path = require('path');
 var bodyParser = require('body-parser');
 var jwt = require('jsonwebtoken');
 var favicon = require('serve-favicon');
+var morgan = require('morgan');
 var cors = require('cors');
 
 // Load env vars if not already set
@@ -39,6 +40,7 @@ mongoose.connect(URL, { server: { reconnectTries: Number.MAX_VALUE } });
 var app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json({ limit: '50mb' }));
+app.use(morgan('combined'))
 
 /* Enabling CORS */
 app.use(cors());
@@ -55,6 +57,7 @@ app.use('/auth', require('./routes/auth'));
 app.use('/categories', require('./routes/categories'));
 app.use('/comments', require('./routes/comments'));
 app.use('/dashboard', require('./routes/dashboard'));
+app.use('/instagram', require('./routes/instagram'));
 app.use('/posts', require('./routes/posts'));
 app.use('/settings', require('./routes/settings'));
 app.use('/stats', require('./routes/stats'));
