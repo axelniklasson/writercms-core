@@ -110,7 +110,7 @@ router.post('/', auth, function(req, res) {
                     // Publish post if created at resa.axelniklasson.se and share to twitter is set
                     var origin = req.get('origin');
                     if (postToTwitter && (origin === 'http://resa.axelniklasson.se' || origin === 'https://resa.axelniklasson.se')) {
-                        twitter.tweet(domain + '/posts/' + post.year + '/' + post.month + '/' + post.slug);
+                        twitter.tweet(origin + '/posts/' + post.year + '/' + post.month + '/' + post.slug);
                     }
                 }
             });
