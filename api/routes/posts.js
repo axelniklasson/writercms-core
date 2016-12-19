@@ -6,6 +6,7 @@ var auth = require('../etc/authentication');
 var moment = require('moment');
 var bucketService = require('../etc/bucketService');
 var notifier = require('../etc/notifier.js');
+var twitter = require('../etc/twitter');
 
 /* Get all posts */
 router.get('/', function(req, res) {
@@ -95,6 +96,7 @@ router.post('/', auth, function(req, res) {
     var authorID = req.body.author;
     var categories = req.body.categories;
     var location = req.body.location;
+    var postToTwitter = req.body.postToTwitter;
 
     bucketService.addImagesToBucket(images, function(imageLinks, err) {
         if (!err) {
@@ -104,6 +106,12 @@ router.post('/', auth, function(req, res) {
                     res.status(500).send('Could not create post. Error: ' + err);
                 } else {
                     res.json(post);
+
+                    // Publish post if created at resa.axelniklasson.se and share to twitter is set
+                    var origin = req.get('origin');
+                    if (postToTwitter && (origin === 'http://resa.axelniklasson.se' || origin === 'https://resa.axelniklasson.se')) {
+                        twitter.tweet(domain + '/posts/' + post.year + '/' + post.month + '/' + post.slug);
+                    }
                 }
             });
         } else {
