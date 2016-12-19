@@ -96,7 +96,7 @@ router.post('/', auth, function(req, res) {
     var authorID = req.body.author;
     var categories = req.body.categories;
     var location = req.body.location;
-    var domain = req.body.domain;
+    var postToTwitter = req.body.postToTwitter;
 
     bucketService.addImagesToBucket(images, function(imageLinks, err) {
         if (!err) {
@@ -107,8 +107,9 @@ router.post('/', auth, function(req, res) {
                 } else {
                     res.json(post);
 
-                    // Publish post if created at resa.axelniklasson.se
-                    if (domain === 'http://resa.axelniklasson.se' || domain === 'https://resa.axelniklasson.se') {
+                    // Publish post if created at resa.axelniklasson.se and share to twitter is set
+                    var origin = req.get('origin');
+                    if (postToTwitter && (origin === 'http://resa.axelniklasson.se' || origin === 'https://resa.axelniklasson.se')) {
                         twitter.tweet(domain + '/posts/' + post.year + '/' + post.month + '/' + post.slug);
                     }
                 }
