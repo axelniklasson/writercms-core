@@ -97,11 +97,12 @@ router.post('/', auth, function(req, res) {
     var categories = req.body.categories;
     var location = req.body.location;
     var postToTwitter = req.body.postToTwitter;
+    var youtube = req.body.youtube;
 
     bucketService.addImagesToBucket(images, function(imageLinks, err) {
         if (!err) {
             Post.create({ title: title, slug: slug, content: content, images: imageLinks, author: authorID,
-            categories: categories, location: location }, function(err, post) {
+            categories: categories, location: location, youtube: youtube }, function(err, post) {
                 if (err) {
                     res.status(500).send('Could not create post. Error: ' + err);
                 } else {
@@ -110,7 +111,7 @@ router.post('/', auth, function(req, res) {
                     // Publish post if created at resa.axelniklasson.se and share to twitter is set
                     var origin = req.get('origin');
                     if (postToTwitter && (origin === 'http://resa.axelniklasson.se' || origin === 'https://resa.axelniklasson.se')) {
-                        twitter.tweet(domain + '/posts/' + post.year + '/' + post.month + '/' + post.slug);
+                        twitter.tweet(origin + '/posts/' + post.year + '/' + post.month + '/' + post.slug);
                     }
                 }
             });
@@ -160,6 +161,7 @@ router.put('/:id', auth, function(req, res) {
     var categories = req.body.categories;
     var images = req.body.images;
     var location = req.body.location;
+    var youtube = req.body.youtube;
 
     Post.findOne({_id: ID}, function(err, post) {
         // Logic for when images are removed/attached to/from post
@@ -173,7 +175,7 @@ router.put('/:id', auth, function(req, res) {
                         var updatedImages = post.images.concat(imageLinks);
 
                         post.update({ title: title, slug: slug, content: content, categories: categories,
-                            images: updatedImages, location: location }, function(err, post) {
+                            images: updatedImages, location: location, youtube: youtube }, function(err, post) {
                             if (err) {
                                 res.status(500).send('Could not update post. Error: ' + err);
                             } else {
@@ -190,7 +192,7 @@ router.put('/:id', auth, function(req, res) {
                 bucketService.removeImagesFromBucket(removedImages);
 
                 post.update({ title: title, slug: slug, content: content, categories: categories,
-                    images: images, location: location }, function(err, post) {
+                    images: images, location: location, youtube: youtube }, function(err, post) {
                     if (err) {
                         res.status(500).send('Could not update post. Error: ' + err);
                     } else {
@@ -200,7 +202,7 @@ router.put('/:id', auth, function(req, res) {
             }
         } else {
             post.update({ title: title, slug: slug, content: content, categories: categories,
-                images: images, location: location }, function(err, post) {
+                images: images, location: location, youtube: youtube }, function(err, post) {
                 if (err) {
                     res.status(500).send('Could not update post. Error: ' + err);
                 } else {
