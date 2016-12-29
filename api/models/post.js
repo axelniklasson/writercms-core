@@ -11,7 +11,8 @@ var PostSchema = new mongoose.Schema({
     categories: [{ type: mongoose.Schema.ObjectId, ref: 'Category' }],
     location: { type:  mongoose.Schema.Types.Mixed },
     comments: [{ type: mongoose.Schema.ObjectId, ref: 'Comment' }],
-    likes: { type: Number, default: 0 }
+    likes: { type: Number, default: 0 },
+    youtube: { type: String },
 }, {
     toObject: {
         virtuals: true
