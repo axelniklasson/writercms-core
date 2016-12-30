@@ -42,7 +42,34 @@ router.get('/locations', function(req, res) {
         if (err) {
             res.status(500).send('Could not get posts. Error: ' + err);
         } else {
-            res.json(posts);
+            var locationPosts = [];
+            for (var i = 0; i < posts.length; i++) {
+                var post = posts[i];
+                var location = {};
+
+                // Only catch those that actually has location set
+                if (post.location && (post.location.geometry || post.location.location
+                    || (post.location.latitude && post.location.longitude))) {
+                    // Convert old location types
+                    if (post.location.geometry || post.location.location) {
+                        if (post.location.geometry) {
+                            location.latitude = post.location.geometry.location.lat;
+                            location.longitude = post.location.geometry.location.lng;
+                            location.name = post.location.formatted_address;
+                            post.location = location;
+                        } else if (post.location.location) {
+                            location.latitude = post.location.location.latitude;
+                            location.longitude = post.location.location.longitude;
+                            location.name = post.location.name;
+                            post.location = location;
+                        }
+                        locationPosts.push(post);
+                    } else {
+                        locationPosts.push(post);
+                    }
+                }
+            }
+            res.json(locationPosts);
         }
     });
 });

@@ -6,7 +6,7 @@ var User = require('../models/user');
 var moment = require('moment');
 var auth = require('../etc/authentication.js');
 
-/* Get all users */
+/* Get stats */
 router.get('/', auth, function(req, res) {
     Post.find({}).exec(function(err, posts) {
         if (err) {
@@ -14,7 +14,7 @@ router.get('/', auth, function(req, res) {
         } else {
             var days = moment(new Date()).diff(moment(posts[0].date), 'days') + 1;
             var status = {
-                postsPerDay:  Math.round((posts.length / days) * 100) / 100
+                postsPerDay: Math.round((posts.length / days) * 100) / 100
             };
 
             var nbrOfCategories = 0;
@@ -29,13 +29,18 @@ router.get('/', auth, function(req, res) {
                     '$group': {
                         '_id': '$author',
                         'count': { '$sum': 1 }
+                    },
+                },
+                {
+                    '$sort': {
+                        'count': -1
                     }
                 }
             ], function(err, result) {
                 if (err) {
                     res.status(500).send('Could not aggregate posts. Error: ' + err);
                 } else {
-                    var topWriter = { share: posts.length / result[0].count };
+                    var topWriter = { share: Math.round((result[0].count / posts.length) * 100) / 100 };
 
                     User.findOne({ _id: result[0]._id }, function(err, user) {
                         if (err) {
