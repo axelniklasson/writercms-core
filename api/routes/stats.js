@@ -8,7 +8,7 @@ var auth = require('../etc/authentication.js');
 
 /* Get stats */
 router.get('/', auth, function(req, res) {
-    Post.find({}).exec(function(err, posts) {
+    Post.find({}).sort({ date: 1 }).exec(function(err, posts) {
         if (err) {
             res.status(500).send('Could not get posts. Error: ' + err);
         } else {
