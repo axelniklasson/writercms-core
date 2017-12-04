@@ -1,5 +1,5 @@
 # WriterCMS Core
-![WriterCMS logo](https://storage.googleapis.com/writer-images/logo.png)
+![WriterCMS logo](logo.png)
 
 [![GitHub issues](https://img.shields.io/github/issues/WriterCMS/writercms-core.svg)](https://github.com/WriterCMS/writercms-core/issues)
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
