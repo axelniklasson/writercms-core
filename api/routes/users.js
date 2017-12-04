@@ -58,18 +58,20 @@ router.put('/:id', auth, function(req, res) {
     var receiveNotifications = req.body.receiveNotifications;
 
     if (updatedPic) {
-        bucketService.addImageToBucket(req.body.profilePic).then(function(response) {
-            User.findOne({_id: ID}, function(err, user) {
-                user.update({ firstName: firstName, lastName: lastName, username: username, email: email, profilePic: response.url, bio: bio, receiveNotifications: receiveNotifications }, function(err, user) {
-                    if (err) {
-                        res.status(500).send('Could not update user. Error: ' + err);
-                    } else {
-                        res.json(user);
-                    }
+        bucketService.addImagesToBucket([req.body.profilePic], function(imageLinks, err) {
+            if (!err) {
+                User.findOne({_id: ID}, function(err, user) {
+                    user.update({ firstName: firstName, lastName: lastName, username: username, email: email, profilePic: imageLinks[0], bio: bio, receiveNotifications: receiveNotifications }, function(err, user) {
+                        if (err) {
+                            res.status(500).send('Could not update user. Error: ' + err);
+                        } else {
+                            res.json(user);
+                        }
+                    });
                 });
-            });
-        }, function(err) {
-            console.log('bucketService.addImageToBucket(): ' + err);
+            } else {
+                res.status(500).send('Could not save user profile picture. Error: ' + err);
+            }
         });
     } else {
         User.findOne({_id: ID}, function(err, user) {
