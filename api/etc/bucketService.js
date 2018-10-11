@@ -1,13 +1,11 @@
-var google = require('googleapis');
-var gcloud = require('gcloud');
+var { Storage } = require('@google-cloud/storage');
 var moment = require('moment');
 var fs = require('fs');
 
 var bucketService = {
     initialized: false,
     bucketName: 'writer-images',
-    bucket: null,
-    authClient: null
+    bucket: null
 };
 
 bucketService.init = function() {
@@ -17,26 +15,8 @@ bucketService.init = function() {
             resolve();
         }
 
-        google.auth.getApplicationDefault(function (err, authClient) {
-            if (err) {
-                console.log(err);
-                this.initialized = false;
-                reject(err);
-            } else {
-                if (authClient.createScopedRequired && authClient.createScopedRequired()) {
-                    authClient = authClient.createScoped(['https://www.googleapis.com/auth/devstorage.read_write']);
-                    this.authClient = authClient;
-                }
-
-                var storage = gcloud.storage({
-                    projectId: 'writer',
-                    auth: authClient
-                });
-                this.bucket = storage.bucket(self.bucketName);
-                this.initialized = true;
-                resolve();
-            }
-        });
+	this.bucket = storage.bucket(this.bucketName);
+	this.initialized = true;
     });
 
     return promise;
@@ -72,10 +52,7 @@ bucketService.addImagesToBucket = function(images, cb) {
             var stream = file.createWriteStream({
                 metadata: {
                     contentType: imageType,
-                    predefinedAcl: 'publicRead',
-                    metadata: {
-                        custom: 'metadata'
-                    }
+                    predefinedAcl: 'publicRead'
                 }
             });
 
