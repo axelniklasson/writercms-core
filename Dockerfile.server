@@ -1,0 +1,4 @@
+FROM node:10.24.1
+WORKDIR /server/api
+COPY package.json .
+RUN npm install

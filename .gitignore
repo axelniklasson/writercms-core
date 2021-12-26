@@ -2,8 +2,11 @@
 *.log
 node_modules
 config/*
+!config/*.sample.js
 data
 api/data
 api/dump
 *.sh
 *.swp
+db
+!db/restore_backup.sh
